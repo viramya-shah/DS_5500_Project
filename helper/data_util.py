@@ -1,10 +1,10 @@
-import pandas as import pd
+import pandas as pd
 import numpy as np
 import os
 
 
 class DataUtil:
-    def __init__(self, data_folder = "./raw_data"):
+    def __init__(self, data_folder="./raw_data"):
         self.data_folder = data_folder
 
     def read_csv(self, file_name: str = "./pilot.csv", low_memory: bool = False) -> pd.DataFrame:
@@ -14,6 +14,4 @@ class DataUtil:
         :param: low_memory: memory usage for the dataframe
         :returns: Pandas' dataframe
         """
-        return pd.read_csv(os.path.join(self.data_folder, file_name), low_memory = low_memory)
-
-    
+        return pd.read_csv(os.path.join(self.data_folder, file_name), low_memory=low_memory)
