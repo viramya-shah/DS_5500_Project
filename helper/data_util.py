@@ -15,3 +15,6 @@ class DataUtil:
         :returns: Pandas' dataframe
         """
         return pd.read_csv(os.path.join(self.data_folder, file_name), low_memory=low_memory)
+
+    def run(self):
+        pass
