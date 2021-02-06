@@ -2,7 +2,7 @@ import streamlit as st
 from helper.data_util import DataUtil
 from helper.extra_utils import ASSETS
 from helper.churn_analysis import ChurnAnalysis
-from helper.intent_utils import IntentUtils
+from helper.topic_modeling import IntentUtils
 from helper.inference_utils import InferenceUtils
 import pandas as pd
 import numpy as np
