@@ -1,58 +1,101 @@
-import streamlit as st
-from helper.data_util import DataUtil
-from helper.extra_utils import ASSETS
-from helper.churn_analysis import ChurnAnalysis
-from helper.topic_modeling import IntentUtils
-from helper.inference_utils import InferenceUtils
-import pandas as pd
-import numpy as np
+from helper.churn_analysis_v2 import ChurnAnalysis
+# from helper.topic_modeling import IntentUtils
+# from helper.inference_utils import InferenceUtils
 import os
 
+import streamlit as st
 
-st.title("Real time Intent Recognition with Churn Analysis")
+from helper.extra_utils import ASSETS, markup_text
 
-# Todo: Resize this image or find a better one
+# Title on every page
+st.title("Real time Topic Modeling with Churn Analysis")
 
+# Navigational image
 st.sidebar.image(os.path.join(ASSETS, 'logo.png'))
+
+# Navigational options
 option = st.sidebar.radio(
-    label="option",
+    label="Modules",
     options=[
         'Tutorial: How to use it?',
         'Churn Analysis',
-        'Intent Recognition',
+        'Topic Modeling',
         'Inference'
-        'c'],
+    ],
     index=0
 )
 
+# option: 'Tutorial: How to use it?'
 if option == 'Tutorial: How to use it?':
-    st.markdown((
-        '''
-        How to use damn thing!
-        '''
-    ), unsafe_allow_html=True)
+    description = markup_text.get('homepage', 'ERROR')
+    st.markdown(description, unsafe_allow_html=True)
 
+# option: 'Churn Module'
 elif option == 'Churn Analysis':
-    churnAnalysis = ChurnAnalysis(data_folder='./data/raw_data')
-    churnAnalysis.run(save=True, output_path='./data/output_data')
+    churnAnalysis = ChurnAnalysis(
+        input_data_file_name='data.csv',
+        data_input_path='./data/raw_data',
+        data_output_path='./data/output',
+        model_path='./data/model'
+    )
 
-    churn_options = st.radio(label='Mode', options=['EDA', 'Modeling'], index=0)
+    churn_module_options = st.sidebar.radio(
+        label="What to do?",
+        options=[
+            'Exploratory Data Analysis',
+            'Train Models',
+            'Expandability',
+        ],
+        index=0
+    )
 
-    if st.button('Go'):
-        churnAnalysis.run()
+    if churn_module_options == 'Exploratory Data Analysis':
+        st.markdown("<b>The columns of the data are</b>", unsafe_allow_html=True)
+        st.write(churnAnalysis.show_col_name())
+
+        figures = churnAnalysis.eda()
+
+        st.write("DESCRIPTION")  # Todo: Add description here
+        st.plotly_chart(figures[0])
+
+        st.write("DESCRIPTION")  # Todo: Add description here
+        st.plotly_chart(figures[1])
+
+        st.write("DESCRIPTION")  # Todo: Add description here
+        st.plotly_chart(figures[2])
+
+        st.write("DESCRIPTION")  # Todo: Add description here
+        st.plotly_chart(figures[3])
+
+    elif churn_module_options == 'Train Models':
+        model_options = st.radio(label='Select a model',
+                                 options=[
+                                     'Logistic Regression',
+                                     'Random Forest',
+                                     'Support Vector Machines'
+                                 ], index=0)
+
+        if st.button("Train"):
+            st.write("Training")
+        else:
+            st.write("Pretrained")
+
+        pass
+    elif churn_module_options == 'Expandability':
+        pass
 
 elif option == 'Intent Recognition':
-    intentUtils = IntentUtils()
-    # try:
-    #     with open(os.path.join(ASSETS, filename, '.txt')) as input_name:
-    #         st.text(input_name.read())
-    # except FileNotFoundError:
-    #     st.error('File not found.')
+    pass
+    # intentUtils = IntentUtils()
+    # # try:
+    # #     with open(os.path.join(ASSETS, filename, '.txt')) as input_name:
+    # #         st.text(input_name.read())
+    # # except FileNotFoundError:
+    # #     st.error('File not found.')
 
 elif option == 'Inference':
-    try:
-        inferenceUtils = InferenceUtils()
-    except ValueError as e:
-        st.markdown("!!!Run Churn and Intent First!!!")
-
-
+    pass
+    # try:
+    #     inferenceUtils = InferenceUtils()
+    # except ValueError as e:
+    #     st.markdown("!!!Run Churn and Intent First!!!")

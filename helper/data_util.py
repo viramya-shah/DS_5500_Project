@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
 import pandas as pd
 import numpy as np
 import os
@@ -7,7 +13,7 @@ class DataUtil:
     def __init__(self, data_folder="./raw_data"):
         self.data_folder = data_folder
 
-    def read_csv(self, file_name: str = "./pilot.csv", low_memory: bool = False) -> pd.DataFrame:
+    def read_csv(self, file_name: str = "./data.csv", low_memory: bool = False) -> pd.DataFrame:
         """
         Reads the raw data csv and returns a Pandas dataframe
         :param: file_name: The file to be read
@@ -16,5 +22,3 @@ class DataUtil:
         """
         return pd.read_csv(os.path.join(self.data_folder, file_name), low_memory=low_memory)
 
-    def run(self):
-        pass

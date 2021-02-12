@@ -1,6 +1,7 @@
 import joblib
 import numpy as np
 import pandas as pd
+import os
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -10,6 +11,71 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
+import pandas as pd
+import numpy as np
+import os
+import plotly
+from plotly.graph_objs import Pie, Layout, Figure
+import plotly.express as px
+import plotly.graph_objs as go
+import plotly.figure_factory as ff
+from plotly.offline import init_notebook_mode
+
+init_notebook_mode(connected=True)
+from plotly.offline import plot, iplot
+
+
+class ChurnAnalysis:
+    def __init__(self,
+                 input_data_file_name: str = './data.csv',
+                 data_input_path: str = './data/raw_data',
+                 data_output_path: str = './data/output',
+                 model_path: str = './data/models',
+                 ) -> None:
+        """
+        Init the data path variables
+        :param data_input_path:
+        :param data_output_path:
+        :param model_path:
+        """
+        self.data_input_path = data_input_path
+        self.data_output_path = data_output_path
+        self.model_path = model_path
+
+        self.raw_data = pd.read_csv(os.path.join(self.data_input_path, input_data_file_name),
+                                    low_memory=False
+                                    )
+
+    def show_col_name(self) -> str:
+        return ", ".join(self.raw_data.columns.tolist())
+
+    def eda(self) -> tuple:
+        """
+        This function is used to make plots between various data attributes
+        :return: Plotly figures
+        """
+
+        # pie chart to show imbalance
+        y = self.raw_data["Churn"].value_counts()
+        _layout = Layout(title='Churn')
+        _data = Pie(labels=self.raw_data['Churn'].unique(), values=y.values.tolist())
+        figure_1 = Figure(data=[_data], layout=_layout)
+
+        # contract vs monthly charges
+        figure_2 = px.box(self.raw_data, x="Contract", y="MonthlyCharges")
+
+        # tenure and monthly charges
+        figure_3 = px.scatter(self.raw_data, x="tenure", y="MonthlyCharges",
+                              color='Churn', facet_col="Contract", facet_col_wrap=3,
+                              title="Churn Rate Analysis")
+
+        # Todo: Add comment
+        figure_4 = px.scatter(self.raw_data,
+                              x="tenure", y="MonthlyCharges",
+                              color="Churn", marginal_y="rug",
+                              marginal_x="histogram")
+
+        return figure_1, figure_2, figure_3, figure_4
 
 
 class TrainUtil:
