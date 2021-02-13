@@ -2,6 +2,7 @@ from helper.churn_analysis_v2 import ChurnAnalysis
 # from helper.topic_modeling import IntentUtils
 # from helper.inference_utils import InferenceUtils
 import os
+import pickle
 
 import streamlit as st
 
@@ -44,12 +45,14 @@ elif option == 'Churn Analysis':
         options=[
             'Exploratory Data Analysis',
             'Train Models',
-            'Expandability',
+            'Explainability',
         ],
         index=0
     )
 
     if churn_module_options == 'Exploratory Data Analysis':
+        st.markdown("<b>Raw Data</b>", unsafe_allow_html=True)
+        st.write(churnAnalysis.raw_data.head(4))
         st.markdown("<b>The columns of the data are</b>", unsafe_allow_html=True)
         st.write(churnAnalysis.show_col_name())
 
@@ -72,16 +75,25 @@ elif option == 'Churn Analysis':
                                  options=[
                                      'Logistic Regression',
                                      'Random Forest',
-                                     'Support Vector Machines'
+                                     # 'Support Vector Machines'
                                  ], index=0)
 
         if st.button("Train"):
-            st.write("PLACEHOLDER")
+            reports = churnAnalysis.run(model_name=model_options,
+                                        apply_reduction=True)
+            train_report = reports['train_report']
+            test_report = reports['train_report']
+            st.write(train_report)
+            st.write(test_report)
         else:
-            st.write("PLACEHOLDER")
+            X_test = pickle.load(open(os.path.join(churnAnalysis.data_output_path, 'x_test.pkl'), 'rb'))
+            y_test = pickle.load(open(os.path.join(churnAnalysis.data_output_path, 'y_test.pkl'), 'rb'))
+
+            test_report = churnAnalysis.predict(model_options, X_test, y_test)
+            st.write(test_report)
 
         pass
-    elif churn_module_options == 'Expandability':
+    elif churn_module_options == 'Explainability':
         st.write("PLACEHOLDER")
         pass
 

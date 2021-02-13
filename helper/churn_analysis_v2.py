@@ -1,11 +1,13 @@
 import os
+import pickle
+from collections import Counter
 
-import joblib
 import numpy as np
 import pandas as pd
 import plotly.express as px
+from imblearn.over_sampling import RandomOverSampler
+from imblearn.over_sampling import SMOTE, ADASYN
 from plotly.graph_objs import Pie, Layout, Figure
-from plotly.offline import init_notebook_mode
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -23,6 +25,7 @@ class ChurnAnalysis:
                  data_input_path: str = './data/raw_data',
                  data_output_path: str = './data/output',
                  model_path: str = './data/models',
+                 output_col: str = 'Churn'
                  ) -> None:
         """
         Init the data path variables
@@ -37,6 +40,9 @@ class ChurnAnalysis:
         self.raw_data = pd.read_csv(os.path.join(self.data_input_path, input_data_file_name),
                                     low_memory=False
                                     )
+
+        self.output_column = output_col
+        self.feature_columns = list(set(self.raw_data.columns) - set(self.output_column))
 
     def show_col_name(self) -> str:
         return ", ".join(self.raw_data.columns.tolist())
@@ -69,98 +75,198 @@ class ChurnAnalysis:
 
         return figure_1, figure_2, figure_3, figure_4
 
-
-class TrainUtil:
-    def __init__(self, dataset):
-        self.data = dataset
-
-    def preprocessed(self):
+    def _preprocess(self,
+                    bins=5,
+                    labels=None
+                    ) -> None:
         """
-        Reads the data frame and returns a categorical data frame 
-        :param: dataset
-        :returns: Preprocessed dataframe
+        Encodes the categorical data and bins the continuous variables
+        :param: bins: bins to divide the tenure into
+        :param: labels: labels to give to the binned tenure data
+        :return:
         """
-        catColumn = self.data[
-            ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines', 'InternetService',
-             'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies',
-             'Contract', 'PaperlessBilling', 'PaymentMethod']]
+        if labels is None:
+            labels = [1, 2, 3, 4, 5]
+
+        catColumn = self.raw_data[['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService',
+                                   'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup',
+                                   'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies',
+                                   'Contract', 'PaperlessBilling', 'PaymentMethod', 'Churn']]
+
         categorical_cols = ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines',
-                            'InternetService',
-                            'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV',
-                            'StreamingMovies',
-                            'Contract', 'PaperlessBilling', 'PaymentMethod']
+                            'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport',
+                            'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod', 'Churn']
 
         le = LabelEncoder()
-
         catColumn[categorical_cols] = catColumn[categorical_cols].apply(lambda col: le.fit_transform(col))
-        catColumn['TotalCharges'] = self.data['TotalCharges']
-        catColumn['MonthlyCharges'] = self.data['MonthlyCharges']
-        bins = [0, 20, 40, 60, 80, 100]
-        labels = [1, 2, 3, 4, 5]
-        catColumn['tenure'] = pd.cut(self.data['tenure'], bins, labels=labels)
-        return catColumn
+        catColumn['TotalCharges'] = self.raw_data['TotalCharges']
+        catColumn['MonthlyCharges'] = self.raw_data['MonthlyCharges']
+        catColumn['tenure'] = pd.cut(self.raw_data['tenure'],
+                                     bins=bins,
+                                     labels=labels,
+                                     right=True,
+                                     include_lowest=True)
 
-    def split_dataset(self, features):
-        """
-        Reads the data frame converts the target variable into categorical and splits the data to trainset and testset 
-        :param: features
-        :returns: trainset (X_train, y_train) and testset (X_test, y_test)
-        """
-        lb_target = LabelEncoder()
-        self.data['Churn'] = lb_target.fit_transform(self.data['Churn'])
-        features['tenure'] = lb_target.fit_transform(features['tenure'])
-        features['TotalCharges'] = pd.to_numeric(features['TotalCharges'], errors='coerce')
-        features = np.nan_to_num(features)
-        X_train, X_test, y_train, y_test = train_test_split(features, self.data['Churn'], test_size=0.3, random_state=0)
-        return X_train, X_test, y_train, y_test
+        self.raw_data = catColumn.copy()
 
-    def LR_model(self, X_train, y_train):
-        """
-        Reads the trainset and returns Logistic Regression model
-        :param: trainset(X_train, y_train)
-        :returns: LR model
-        """
-        logistic = LogisticRegression(solver='lbfgs')
-        pca = PCA()
-        scaler = StandardScaler()
-        steps_lr = [('scaler', scaler), ('pca', pca), ('logistic', logistic)]
+        self.raw_data['tenure'] = self.raw_data['tenure'].fillna(1).astype(float)
+        self.raw_data['TotalCharges'] = pd.to_numeric(self.raw_data['TotalCharges'], errors='coerce').fillna(0).astype(
+            float)
+        self.raw_data['MonthlyCharges'] = self.raw_data['MonthlyCharges'].fillna(1).astype(float)
 
-        pipeline = Pipeline(steps_lr)
-        n_components = [5, 10, 30]
-        Cs = np.logspace(-4, 4, 3)
-        estimator = GridSearchCV(pipeline,
-                                 param_grid={
-                                     'pca__n_components': n_components,
-                                     'logistic__C': Cs}, cv=5, refit=True)
-        lr_model = estimator.fit(X_train, y_train)
-        joblib.dump(lr_model, 'LR_model.sav')
-        return lr_model
+    def _check_imbalance(self, method: str = 'SMOTE', random_seed: int = 1769) -> dict:
+        """
+        This function checks for imbalance. Further, it resamples the data and return the dataframe.
+        Currently, we are only using Oversampling.
+        :param: method: This defines the type of sampling to be done. Possible values: ['SMOTE', 'RANDOM']
+        :return: None
+        """
+        output = self.raw_data[self.output_column]
+        self.feature_columns = list(set(self.raw_data.columns) - set(self.output_column))
+        features = self.raw_data[self.feature_columns]
 
-    def RF_model(self, X_train, y_train):
-        """
-        Reads the trainset and returns Random Forest Classifier model
-        :param: trainset(X_train, y_train)
-        :returns: RF model
-        """
-        scaler = StandardScaler()
-        rf = RandomForestClassifier()
-        steps_rf = [('scaler', scaler), ('rf', rf)]
+        before_sampling = Counter(self.raw_data[self.output_column])
 
-        pipeline_rf = Pipeline(steps_rf)
-        max_depth = [50, 100]
-        estimator_rf = GridSearchCV(pipeline_rf,
-                                    param_grid={
-                                        'rf__max_depth': max_depth}, cv=5, refit=True)
-        rf_model = estimator_rf.fit(X_train, y_train)
-        joblib.dump(rf_model, 'RF_model.sav')
-        return rf_model
+        if method == 'SMOTE':
+            sampler = SMOTE(sampling_strategy='auto',
+                            random_state=random_seed,
+                            n_jobs=-1)
+        elif method == 'ADASYN':
+            sampler = ADASYN(sampling_strategy='auto',
+                             random_state=random_seed,
+                             n_jobs=-1)
+        else:
+            sampler = RandomOverSampler(sampling_strategy='auto',
+                                        random_state=random_seed)
 
-    def evaluation(self, model, X_test, y_test):
+        features_resampled, output_resampled = sampler.fit_resample(features, output)
+        after_sampling = Counter(output_resampled)
+
+        return {
+            'before_sampling_counter': before_sampling,
+            'after_sampling_counter': after_sampling,
+            'feature_data': features_resampled,
+            'output_resampled': output_resampled
+        }
+
+    def _split_dataset(self,
+                       features: pd.DataFrame,
+                       output: pd.DataFrame,
+                       test_size: float = 0.2,
+                       random_state: int = 1769) -> dict:
         """
-        Reads the testset and returns evaluation score
-        :param: testset
-        :returns: Evaluation Plot
+        Splits the data to train set and test set
+        :param: test_size: test size percent
+        :returns: Train set (X_train, y_train) and Test set (X_test, y_test)
         """
-        predictions = model.predict(X_test)
-        print(classification_report(y_test, predictions))
-        print("score = %3.2f" % model.score(X_test, y_test))
+        X_train, X_test, y_train, y_test = train_test_split(features,
+                                                            output,
+                                                            test_size=test_size,
+                                                            random_state=random_state)
+        if os.path.join(os.path.join(self.data_output_path)):
+            os.makedirs(os.path.join(self.data_output_path))
+
+        pickle.dump(X_train, open(os.path.join(self.data_output_path, 'x_train.pkl'), 'wb'))
+        pickle.dump(X_test, open(os.path.join(self.data_output_path, 'x_test.pkl'), 'wb'))
+        pickle.dump(y_train, open(os.path.join(self.data_output_path, 'y_train.pkl'), 'wb'))
+        pickle.dump(y_test, open(os.path.join(self.data_output_path, 'y_test.pkl'), 'wb'))
+
+        return {
+            'X_train': X_train,
+            'X_test': X_test,
+            'y_train': y_train,
+            'y_test': y_test
+        }
+
+    def _model(self,
+               X_train, y_train,
+               model_name: str = 'Logistic Regression',
+               apply_reduction: bool = False) -> str:
+        """
+        Trains the models, saves the pickled object to the model_path.
+        :param: X_train: Training feature data
+        :param: y_train: Output feature data
+        :param model_name: which model to be used?
+        :param apply_reduction: whether to apply PCA reduction
+        :return: Classification report!
+        """
+        param_grid = {}
+        n_components = [5, 10, 30]  # for PCA
+        max_depth = [20, 50, 100]  # for RandomForest
+        C = np.logspace(-4, 4, 3)  # For LR
+
+        steps = [('scaler', StandardScaler())]
+
+        if apply_reduction:
+            steps.append(('dimension_reduction', PCA()))
+            param_grid['dimension_reduction__n_components'] = n_components
+
+        if model_name == 'Logistic Regression':
+            steps.append(('logistic', LogisticRegression(solver='lbfgs')))
+            param_grid['logistic__C'] = C
+
+        elif model_name == 'Random Forest':
+            steps.append(('random_forest', RandomForestClassifier()))
+            param_grid['random_forest__max_depth'] = max_depth
+
+        estimator = GridSearchCV(Pipeline(steps),
+                                 param_grid=param_grid,
+                                 cv=5,
+                                 refit=True)
+
+        estimator.fit(X_train, y_train)
+
+        if not os.path.exists(os.path.join(self.model_path, model_name)):
+            os.makedirs(os.path.join(self.model_path, model_name))
+
+        pickle.dump(estimator,
+                    open(os.path.join(self.model_path,
+                                      model_name,
+                                      f"{model_name}.pkl"),
+                         'wb')
+                    )
+        predictions = estimator.predict(X_train)
+        return classification_report(y_train, predictions)
+
+    def predict(self,
+                model_name,
+                X_test,
+                y_test) -> str:
+        """
+
+        :param model_name: Model name to be load
+        :param X_test: Test feature data
+        :param y_test: Test output data
+        :return: Classification report
+        """
+        estimator = pickle.load(open(os.path.join(self.model_path,
+                                                  model_name,
+                                                  f"{model_name}.pkl"),
+                                     'rb'))
+
+        predictions = estimator.predict(X_test)
+        return classification_report(y_test, predictions)
+
+    def run(self,
+            model_name: str = 'Logistic Regression',
+            apply_reduction: bool = True) -> dict:
+        """
+
+        :param model_name:
+        :param apply_reduction:
+        :return:
+        """
+        self._preprocess(bins=5,
+                         labels=[1, 2, 3, 4, 5])
+
+        imbalance_dict = self._check_imbalance()
+        split_dict = self._split_dataset(imbalance_dict['feature_data'],
+                                         imbalance_dict['output_resampled'])
+
+        train_report = self._model(split_dict['X_train'], split_dict['y_train'], model_name, apply_reduction)
+        test_report = self.predict(model_name, split_dict['X_test'], split_dict['y_test'])
+
+        return {
+            'train_report': train_report,
+            'test_report': test_report
+        }
