@@ -1,7 +1,11 @@
+import os
+
 import joblib
 import numpy as np
 import pandas as pd
-import os
+import plotly.express as px
+from plotly.graph_objs import Pie, Layout, Figure
+from plotly.offline import init_notebook_mode
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -11,18 +15,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
-import pandas as pd
-import numpy as np
-import os
-import plotly
-from plotly.graph_objs import Pie, Layout, Figure
-import plotly.express as px
-import plotly.graph_objs as go
-import plotly.figure_factory as ff
-from plotly.offline import init_notebook_mode
-
-init_notebook_mode(connected=True)
-from plotly.offline import plot, iplot
 
 
 class ChurnAnalysis:

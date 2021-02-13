@@ -8,7 +8,7 @@ import streamlit as st
 from helper.extra_utils import ASSETS, markup_text
 
 # Title on every page
-st.title("Real time Topic Modeling with Churn Analysis")
+st.title("Improving Customer Experience")
 
 # Navigational image
 st.sidebar.image(os.path.join(ASSETS, 'logo.png'))
@@ -76,16 +76,17 @@ elif option == 'Churn Analysis':
                                  ], index=0)
 
         if st.button("Train"):
-            st.write("Training")
+            st.write("PLACEHOLDER")
         else:
-            st.write("Pretrained")
+            st.write("PLACEHOLDER")
 
         pass
     elif churn_module_options == 'Expandability':
+        st.write("PLACEHOLDER")
         pass
 
 elif option == 'Intent Recognition':
-    pass
+    st.write("PLACEHOLDER")
     # intentUtils = IntentUtils()
     # # try:
     # #     with open(os.path.join(ASSETS, filename, '.txt')) as input_name:
@@ -94,7 +95,7 @@ elif option == 'Intent Recognition':
     # #     st.error('File not found.')
 
 elif option == 'Inference':
-    pass
+    st.write("PLACEHOLDER")
     # try:
     #     inferenceUtils = InferenceUtils()
     # except ValueError as e:

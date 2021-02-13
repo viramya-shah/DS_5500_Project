@@ -22,16 +22,21 @@ markup_text = {
                             and PDP plots we can estimate the importance that model gives to attributes.                     
                 </ul>
                 
-                Topic Modeling module further provides XXX options as follows:
+                Topic Modeling module further provides options as follows:
                 <ul>
-                <li> asd
-                <li> asd
+                <li> PLACEHOLDER
+                <li> PLACEHOLDER
+                </ul>
+                
+                Inference module further provides options as follows:
+                <ul>
+                <li> PLACEHOLDER
+                <li> PLACEHOLDER
                 </ul>
                 <hr>
                 Note: Further instructions are also available in modules/sub-modules.
                 """
 }
-
 
 # churn global variables
 churn_dict = {
