@@ -59,16 +59,16 @@ elif option == 'Churn Analysis':
         figures = churnAnalysis.eda()
 
         st.write("DESCRIPTION")  # Todo: Add description here
-        st.plotly_chart(figures[0])
+        st.plotly_chart(figures)
 
-        st.write("DESCRIPTION")  # Todo: Add description here
-        st.plotly_chart(figures[1])
-
-        st.write("DESCRIPTION")  # Todo: Add description here
-        st.plotly_chart(figures[2])
-
-        st.write("DESCRIPTION")  # Todo: Add description here
-        st.plotly_chart(figures[3])
+        # st.write("DESCRIPTION")  # Todo: Add description here
+        # st.plotly_chart(figures[1])
+        #
+        # st.write("DESCRIPTION")  # Todo: Add description here
+        # st.plotly_chart(figures[2])
+        #
+        # st.write("DESCRIPTION")  # Todo: Add description here
+        # st.plotly_chart(figures[3])
 
     elif churn_module_options == 'Train Models':
         model_options = st.radio(label='Select a model',

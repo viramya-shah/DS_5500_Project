@@ -4,10 +4,10 @@ from collections import Counter
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
 from imblearn.over_sampling import RandomOverSampler
 from imblearn.over_sampling import SMOTE, ADASYN
-from plotly.graph_objs import Pie, Layout, Figure
+from plotly.subplots import make_subplots
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -73,8 +73,12 @@ class ChurnAnalysis:
         #                       color="Churn", marginal_y="rug",
         #                       marginal_x="histogram")
         # Pie Plot
-        y = self.df["Churn"].value_counts()
+        y = self.raw_data["Churn"].value_counts()
+        blue_color = 'blue'
+        red_color = '#d62728'
+
         colors = ["blue", "#d62728"]
+
         fig = make_subplots(
             rows=6, cols=2,
             column_widths=[3.2, 3.2],
@@ -82,13 +86,13 @@ class ChurnAnalysis:
             specs=[[{"type": "pie", "rowspan": 2}, {"type": "scatter"}],
                    [None, {"type": "scatter"}],
                    [None, None],
-                   [{"type": "histogram"}, {"type": "bar"}]
-                , [None, None], [{"type": "box"}, {"type": "box"}]],
+                   [{"type": "histogram"}, {"type": "bar"}],
+                    [None, None], [{"type": "box"}, {"type": "box"}]],
 
             subplot_titles=("Churn", "Charges", "", "Tenure", "PaymentMethod", "Paperless Billing", "Contract"))
 
         fig.add_trace(go.Pie(
-            labels=self.df['Churn'].unique(),
+            labels=self.raw_data['Churn'].unique(),
             values=y.values.tolist(),
             legendgroup="group",
             marker=dict(colors=colors),
@@ -98,14 +102,13 @@ class ChurnAnalysis:
         # Scatter Plot
         bins = [0, 10, 20, 30, 40, 50, 60, 70, 80]
         labels = [0, 10, 20, 30, 40, 50, 60, 70]
-        self.df['tenure_bin'] = pd.cut(self.df['tenure'], bins, labels=labels)
+        self.raw_data['tenure_bin'] = pd.cut(self.raw_data['tenure'], bins, labels=labels)
 
         # Monthly Charges
-        df_MonthlyCharges = (self.df.groupby(['Churn', 'tenure_bin'])
+        df_MonthlyCharges = (self.raw_data.groupby(['Churn', 'tenure_bin'])
                              .MonthlyCharges.mean()
-                             .reset_index(name='avg_MonthlyCharges')
+                             .reset_index(name='avg_MonthlyCharges'))
 
-                             )
         data_MonthlyCharges_Yes = df_MonthlyCharges[df_MonthlyCharges.Churn == "Yes"]
         data_MonthlyCharges_No = df_MonthlyCharges[df_MonthlyCharges.Churn == "No"]
 
@@ -117,8 +120,8 @@ class ChurnAnalysis:
         fig.update_yaxes(title_text="MonthlyCharges", row=1, col=2)
 
         # Total Charges
-        self.df['TotalCharges'] = pd.to_numeric(self.df['TotalCharges'], errors='coerce')
-        df_TotalCharges = (self.df.groupby(['Churn', 'tenure_bin'])
+        self.raw_data['TotalCharges'] = pd.to_numeric(self.raw_data['TotalCharges'], errors='coerce')
+        df_TotalCharges = (self.raw_data.groupby(['Churn', 'tenure_bin'])
                            .TotalCharges.mean()
                            .reset_index(name='avg_TotalCharges')
                            )
@@ -136,8 +139,8 @@ class ChurnAnalysis:
         fig.update_yaxes(title_text="TotalCharges", row=2, col=2)
 
         ## Histogram_Plot
-        data_Churn_Yes = self.df[data.Churn == "Yes"]
-        data_Churn_No = self.df[data.Churn == "No"]
+        data_Churn_Yes = self.raw_data[self.raw_data.Churn == "Yes"]
+        data_Churn_No = self.raw_data[self.raw_data.Churn == "No"]
         fig.add_trace(go.Histogram(
             x=data_Churn_Yes['tenure'],
             xbins=dict(
