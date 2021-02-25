@@ -1,12 +1,15 @@
-from helper.churn_analysis_v2 import ChurnAnalysis
-# from helper.topic_modeling import IntentUtils
-# from helper.inference_utils import InferenceUtils
 import os
 import pickle
 
 import streamlit as st
 
+from helper.churn_analysis import ChurnAnalysis
+from helper.explain import Explain
 from helper.extra_utils import ASSETS, markup_text
+from helper.streamlit_shap_plot_utils import set_block_container_style
+
+st.set_option('deprecation.showPyplotGlobalUse', False)
+set_block_container_style()
 
 # Title on every page
 st.title("Improving Customer Experience")
@@ -61,15 +64,6 @@ elif option == 'Churn Analysis':
         st.write("DESCRIPTION")  # Todo: Add description here
         st.plotly_chart(figures)
 
-        # st.write("DESCRIPTION")  # Todo: Add description here
-        # st.plotly_chart(figures[1])
-        #
-        # st.write("DESCRIPTION")  # Todo: Add description here
-        # st.plotly_chart(figures[2])
-        #
-        # st.write("DESCRIPTION")  # Todo: Add description here
-        # st.plotly_chart(figures[3])
-
     elif churn_module_options == 'Train Models':
         model_options = st.radio(label='Select a model',
                                  options=[
@@ -83,32 +77,32 @@ elif option == 'Churn Analysis':
                                         apply_reduction=True)
             train_report = reports['train_report']
             test_report = reports['train_report']
-            st.write(train_report)
-            st.write(test_report)
+            st.text(str(train_report))  # Todo: Change this to a table view
+            st.text(str(test_report))  # Todo: Change this to a table view
         else:
             X_test = pickle.load(open(os.path.join(churnAnalysis.data_output_path, 'x_test.pkl'), 'rb'))
             y_test = pickle.load(open(os.path.join(churnAnalysis.data_output_path, 'y_test.pkl'), 'rb'))
 
             test_report = churnAnalysis.predict(model_options, X_test, y_test)
-            st.write(test_report)
+            st.text(test_report)  # Todo: Change this to a table view
 
-        pass
     elif churn_module_options == 'Explainability':
-        st.write("PLACEHOLDER")
-        pass
+        model_options = st.radio(label='Select a model',
+                                 options=[
+                                     'Logistic Regression',
+                                     'Random Forest',
+                                     # 'Support Vector Machines'
+                                 ], index=0)
+        if st.button('Explain'):
+            explain = Explain(model_name=model_options,
+                              model_path='./data/model',
+                              data_path='./data/output',
+                              only_test=False)
 
-elif option == 'Intent Recognition':
+            explain.run()
+
+elif option == 'Topic Modeling':
     st.write("PLACEHOLDER")
-    # intentUtils = IntentUtils()
-    # # try:
-    # #     with open(os.path.join(ASSETS, filename, '.txt')) as input_name:
-    # #         st.text(input_name.read())
-    # # except FileNotFoundError:
-    # #     st.error('File not found.')
 
 elif option == 'Inference':
     st.write("PLACEHOLDER")
-    # try:
-    #     inferenceUtils = InferenceUtils()
-    # except ValueError as e:
-    #     st.markdown("!!!Run Churn and Intent First!!!")

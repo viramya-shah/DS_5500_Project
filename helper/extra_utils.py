@@ -1,3 +1,7 @@
+"""
+This file contains variables and markup text that require global scope.
+"""
+
 ASSETS = "./asset/"
 
 # markup text
