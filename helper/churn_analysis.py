@@ -323,7 +323,7 @@ class ChurnAnalysis:
                                                             output,
                                                             test_size=test_size,
                                                             random_state=random_state)
-        if os.path.join(os.path.join(self.data_output_path)):
+        if not os.path.exists(os.path.join(self.data_output_path)):
             os.makedirs(os.path.join(self.data_output_path))
 
         pickle.dump(X_train, open(os.path.join(self.data_output_path, 'x_train.pkl'), 'wb'))
