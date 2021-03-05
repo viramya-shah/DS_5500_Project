@@ -2,22 +2,21 @@ import os
 import pickle
 from collections import Counter
 
-import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import streamlit as st
 from imblearn.over_sampling import RandomOverSampler
 from imblearn.over_sampling import SMOTE, ADASYN
+from pactools.grid_search import GridSearchCVProgressBar
 from plotly.subplots import make_subplots
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
-from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
-from pactools.grid_search import GridSearchCVProgressBar
 
 
 class ChurnAnalysis:
@@ -53,6 +52,7 @@ class ChurnAnalysis:
         """
         return ", ".join(self.raw_data.columns.tolist())
 
+    @st.cache
     def eda(self) -> tuple:
         """
         This function primarily involves in Exploratory Data Analysis. It plots various
@@ -394,7 +394,7 @@ class ChurnAnalysis:
                          'wb')
                     )
         predictions = estimator.predict(X_train)
-        return classification_report(y_train, predictions)
+        return classification_report(y_train, predictions, output_dict=True)
 
     def predict(self,
                 model_name,
@@ -413,7 +413,7 @@ class ChurnAnalysis:
                                      'rb'))
 
         predictions = estimator.predict(X_test)
-        return classification_report(y_test, predictions)
+        return classification_report(y_test, predictions, output_dict=True)
 
     def run(self,
             model_name: str = 'Logistic Regression',
@@ -433,6 +433,8 @@ class ChurnAnalysis:
 
         train_report = self._model(split_dict['X_train'], split_dict['y_train'], model_name, apply_reduction)
         test_report = self.predict(model_name, split_dict['X_test'], split_dict['y_test'])
+
+
 
         return {
             'train_report': train_report,

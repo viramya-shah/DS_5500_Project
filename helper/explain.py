@@ -4,7 +4,7 @@ import pickle
 import shap
 import streamlit as st
 import matplotlib.pyplot as plt
-from helper.streamlit_shap_plot_utils import show_plot
+from helper.streamlit_shap_plot_utils import show_plot, rf_summary_plot
 
 
 class Explain:
@@ -72,18 +72,21 @@ class Explain:
             if self.only_test:
                 explainer_lr_test = shap.LinearExplainer(self.model, self.x_test_scaled)
                 shap_values_lr_test = explainer_lr_test.shap_values(self.x_test_scaled)
+                plt.figure(figsize=(5, 16))
                 shap.summary_plot(shap_values_lr_test,
                                   self.x_test_scaled,
                                   feature_names=self.x_test.columns, show=False)
-                st.pyplot(bbox_inches='tight')
+                st.pyplot(plt.gcf(), bbox_inches='tight', pad_inches=1)
                 plt.clf()
 
         elif self.model_name == 'Random Forest':
             if self.only_test:
-                explainer_rf_test = shap.TreeExplainer(self.model)
-                shap_values_rf_test = explainer_rf_test.shap_values(self.x_test_scaled)
-                shap.summary_plot(shap_values_rf_test,
-                                  self.x_test_scaled,
-                                  feature_names=self.x_test.columns, show=False)
-                st.pyplot(bbox_inches='tight')
+                rf_summary_plot(self.model, self.x_test_scaled, self.x_test.columns)
+                # explainer_rf_test = shap.TreeExplainer(self.model)
+                # shap_values_rf_test = explainer_rf_test.shap_values(self.x_test_scaled)
+                # shap.summary_plot(shap_values_rf_test,
+                #                   self.x_test_scaled,
+                #                   feature_names=self.x_test.columns, show=False)
+                #
+                st.pyplot(plt.gcf(), bbox_inches='tight')
                 plt.clf()

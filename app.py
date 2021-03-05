@@ -1,6 +1,7 @@
 import os
 import pickle
-
+import pandas as pd
+import matplotlib.pyplot as plt
 import streamlit as st
 
 from helper.churn_analysis import ChurnAnalysis
@@ -71,6 +72,7 @@ elif option == 'Churn Analysis':
                                      'Random Forest',
                                      # 'Support Vector Machines'
                                  ], index=0)
+        data_columns = churnAnalysis.feature_columns
 
         if st.button("Train"):
             st.text("Note: This might take a few minutes")
@@ -79,18 +81,62 @@ elif option == 'Churn Analysis':
             train_report = reports['train_report']
             test_report = reports['test_report']
 
+            X_test = pickle.load(open(os.path.join(churnAnalysis.data_output_path, 'x_test.pkl'), 'rb'))
+
+            if model_options == 'Logistic Regression':
+                model = pickle.load(open("./data/model/Logistic Regression/Logistic Regression.pkl",
+                                         'rb')).best_estimator_
+                coefficients = model['logistic'].coef_[0]
+
+                plt.figure(figsize=(16, 5))
+                ax = plt.gca()
+                ax.set_xticklabels(X_test.columns, rotation=45)
+                plt.bar(X_test.columns, list(coefficients))
+                plt.grid(color='#95a5a6', linestyle='--', linewidth=1, axis='both', alpha=0.7)
+                plt.title("Coefficients for features")
+                plt.ylabel("Coefficients")
+                st.pyplot(plt.gcf())
+                plt.clf()
+            elif model_options == 'Random Forest':
+                pass
+
+            print(train_report)
             st.write("The classification report for the training set is as follows")
-            st.text(str(train_report))  # Todo: Change this to a table view
+            report_train = pd.DataFrame(train_report)
+            report_train.columns = ['Not Churn', 'Churn', 'accuracy', 'macro avg', 'weighted avg']
+            st.write(report_train)
 
             st.write("The classification report for the test set is as follows")
-            st.text(str(test_report))  # Todo: Change this to a table view
+            report_test = pd.DataFrame(test_report)
+            report_test.columns = ['Not Churn', 'Churn', 'accuracy', 'macro avg', 'weighted avg']
+            st.write(report_test)
+
         else:
             X_test = pickle.load(open(os.path.join(churnAnalysis.data_output_path, 'x_test.pkl'), 'rb'))
             y_test = pickle.load(open(os.path.join(churnAnalysis.data_output_path, 'y_test.pkl'), 'rb'))
 
+            if model_options == 'Logistic Regression':
+                model = pickle.load(open("./data/model/Logistic Regression/Logistic Regression.pkl",
+                                         'rb')).best_estimator_
+                coefficients = model['logistic'].coef_[0]
+
+                plt.figure(figsize=(16, 5))
+                ax = plt.gca()
+                ax.set_xticklabels(X_test.columns, rotation=45)
+                plt.bar(X_test.columns, list(coefficients))
+                plt.grid(color='#95a5a6', linestyle='--', linewidth=1, axis='both', alpha=0.7)
+                plt.title("Coefficients for features")
+                plt.ylabel("Coefficients")
+                st.pyplot(plt.gcf())
+                plt.clf()
+            elif model_options == 'Random Forest':
+                pass
+
             st.write("The classification report for the testing set is as follows")
             test_report = churnAnalysis.predict(model_options, X_test, y_test)
-            st.text(test_report)  # Todo: Change this to a table view
+            report_test = pd.DataFrame(test_report)
+            report_test.columns = ['Not Churn', 'Churn', 'accuracy', 'macro avg', 'weighted avg']
+            st.write(report_test)
 
     elif churn_module_options == 'Explainability':
         model_options = st.radio(label='Select a model',

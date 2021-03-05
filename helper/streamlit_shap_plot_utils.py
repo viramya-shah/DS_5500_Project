@@ -1,6 +1,8 @@
 import streamlit as st
 import shap
+import streamlit as st
 import streamlit.components.v1 as components
+import matplotlib.pyplot as plt
 
 COLOR = "black"
 BACKGROUND_COLOR = "#fff"
@@ -9,6 +11,15 @@ BACKGROUND_COLOR = "#fff"
 This file is for random functions that need global presence but can't be associated with any particular
 class.
 """
+
+
+@st.cache
+def rf_summary_plot(model, x_test_scaled, x_test_columns):
+    explainer_rf_test = shap.TreeExplainer(model)
+    shap_values_rf_test = explainer_rf_test.shap_values(x_test_scaled)
+    shap.summary_plot(shap_values_rf_test,
+                      x_test_scaled,
+                      feature_names=x_test_columns, show=False)
 
 
 def show_plot(plot,
