@@ -17,6 +17,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
+from pactools.grid_search import GridSearchCVProgressBar
 
 
 class ChurnAnalysis:
@@ -300,6 +301,9 @@ class ChurnAnalysis:
                                         random_state=random_seed)
 
         features_resampled, output_resampled = sampler.fit_resample(features, output)
+        pickle.dump(features_resampled, open("./data/output/feature.pkl", 'wb'))
+        pickle.dump(output_resampled, open("./data/output/output.pkl", 'wb'))
+
         after_sampling = Counter(output_resampled)
 
         return {
@@ -351,29 +355,33 @@ class ChurnAnalysis:
         :return: Classification report!
         """
         param_grid = {}
-        n_components = [5, 10, 30]  # for PCA
-        max_depth = [20, 50, 100]  # for RandomForest
-        C = [1e-4, 1e-3, 1e-2, 1e-1, 1e1, 1e2, 1e3, 1e4]  # For LR
 
         steps = [('scaler', StandardScaler())]
 
         if apply_reduction:
             steps.append(('dimension_reduction', PCA()))
-            param_grid['dimension_reduction__n_components'] = n_components
+            param_grid['dimension_reduction__n_components'] = [5, 10]
 
         if model_name == 'Logistic Regression':
-            steps.append(('logistic', LogisticRegression(solver='lbfgs')))
-            param_grid['logistic__C'] = C
+            steps.append(('logistic', LogisticRegression()))
+            param_grid['logistic__C'] = [1e-4, 1e-3, 1e-2, 1e-1, 1e1, 1e2, 1e3, 1e4]
+            param_grid['logistic__penalty'] = ['l1', 'l2', 'elasticnet']
+            param_grid['logistic__solver'] = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
+            param_grid['logistic__multi_class'] = ['auto', 'ovr']
 
         elif model_name == 'Random Forest':
-            steps.append(('random_forest', RandomForestClassifier()))
-            param_grid['random_forest__max_depth'] = max_depth
+            steps.append(('random_forest', RandomForestClassifier(random_state=1769)))
+            param_grid['random_forest__max_depth'] = [20, 50, 100]
+            param_grid['random_forest__n_estimators'] = [10, 50, 100]
+            param_grid['random_forest__criterion'] = ['gini', 'entropy']
+            param_grid['random_forest__min_samples_split'] = [2, 0.3]
+            param_grid['random_forest__max_features'] = ['auto', 'sqrt']
 
-        estimator = GridSearchCV(Pipeline(steps),
-                                 param_grid=param_grid,
-                                 cv=5,
-                                 refit=True)
-
+        estimator = GridSearchCVProgressBar(Pipeline(steps),
+                                            param_grid=param_grid,
+                                            cv=3,
+                                            refit=True)
+        print(estimator.get_params().keys())
         estimator.fit(X_train, y_train)
 
         if not os.path.exists(os.path.join(self.model_path, model_name)):
@@ -420,7 +428,7 @@ class ChurnAnalysis:
                          labels=[1, 2, 3, 4, 5])
 
         imbalance_dict = self._check_imbalance()
-        split_dict = self._split_dataset(imbalance_dict['feature_data'],
+        split_dict = self._split_dataset(imbalance_dict['feature_data'].drop(['Churn'], axis=1),
                                          imbalance_dict['output_resampled'])
 
         train_report = self._model(split_dict['X_train'], split_dict['y_train'], model_name, apply_reduction)

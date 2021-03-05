@@ -73,16 +73,22 @@ elif option == 'Churn Analysis':
                                  ], index=0)
 
         if st.button("Train"):
+            st.text("Note: This might take a few minutes")
             reports = churnAnalysis.run(model_name=model_options,
                                         apply_reduction=False)
             train_report = reports['train_report']
             test_report = reports['test_report']
+
+            st.write("The classification report for the training set is as follows")
             st.text(str(train_report))  # Todo: Change this to a table view
+
+            st.write("The classification report for the test set is as follows")
             st.text(str(test_report))  # Todo: Change this to a table view
         else:
             X_test = pickle.load(open(os.path.join(churnAnalysis.data_output_path, 'x_test.pkl'), 'rb'))
             y_test = pickle.load(open(os.path.join(churnAnalysis.data_output_path, 'y_test.pkl'), 'rb'))
 
+            st.write("The classification report for the testing set is as follows")
             test_report = churnAnalysis.predict(model_options, X_test, y_test)
             st.text(test_report)  # Todo: Change this to a table view
 
@@ -99,9 +105,8 @@ elif option == 'Churn Analysis':
                               data_path='./data/output',
                               only_test=True)
 
+            st.text("Note: This might take a few minutes")
             explain.run()
-            # st.pyplot(fig, bbox_inches='tight')
-            # st.pyplot(fig)
 
 elif option == 'Topic Modeling':
     st.write("PLACEHOLDER")
