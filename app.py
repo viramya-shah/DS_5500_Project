@@ -62,7 +62,7 @@ elif option == 'Churn Analysis':
 
         figures = churnAnalysis.eda()
 
-        st.write("DESCRIPTION")  # Todo: Add description here
+        st.markdown("<b>Overview</b>", unsafe_allow_html=True)  # Todo: Add description here
         st.plotly_chart(figures)
 
     elif churn_module_options == 'Train Models':
