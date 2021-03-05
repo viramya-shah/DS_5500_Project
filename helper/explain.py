@@ -3,6 +3,8 @@ import pickle
 
 import shap
 import streamlit as st
+import matplotlib.pyplot as plt
+from helper.streamlit_shap_plot_utils import show_plot
 
 
 class Explain:
@@ -19,8 +21,10 @@ class Explain:
         :param data_path: Input path for the data
         :param only_test: Flag to explain only the test results
         """
+        self.model_name = model_name
         self.model_path = model_path
         self.data_path = data_path
+        self.only_test = only_test
 
         self.model = pickle.load(open(os.path.join(self.model_path,
                                                    model_name,
@@ -47,33 +51,39 @@ class Explain:
                                                     'y_test.pkl'),
                                        'rb'))
 
-        self.estimator = self.model.best_estimator_[-1]
-        self.pipeline = self.model.best_estimator_[:-1]
+        self.estimator = self.model.best_estimator_
+        # self.pipeline = self.model.best_estimator_
 
-    def run(self,
-            nsample: int = 100) -> None:
+        if model_name == 'Logistic Regression':
+            self.model = self.estimator['logistic']
+        elif model_name == 'Random Forest':
+            self.model = self.estimator['random_forest']
+
+        self.scaler = self.estimator['scaler']
+
+        self.x_test_scaled = self.scaler.transform(self.x_test)
+
+    def run(self) -> None:
         """
         This is the main function that runs all the functionality for the class
         :return: None
         """
+        if self.model_name == 'Logistic Regression':
+            if self.only_test:
+                explainer_lr_test = shap.LinearExplainer(self.model, self.x_test_scaled)
+                shap_values_lr_test = explainer_lr_test.shap_values(self.x_test_scaled)
+                shap.summary_plot(shap_values_lr_test,
+                                  self.x_test_scaled,
+                                  feature_names=self.x_test.columns, show=False)
+                st.pyplot(bbox_inches='tight')
+                plt.clf()
 
-        x_train_transformed = self.pipeline.transform(self.x_train)
-        # y_train_transformed = self.pipeline.transform(self.y_train)
-
-        x_test_transformed = self.pipeline.transform(self.x_test)
-        # y_test_transformed = self.pipeline.transform(self.y_test)
-        # tmp = self.estimator.coef_.shape
-
-        # Todo: FIX THIS BUG!!! READ DOCUMENTATION!!
-        explainer = shap.Explainer(self.model, x_train_transformed, link="logit")
-
-        shap_values = explainer.shap_values(self.x_test)
-        st.pyplot(shap.summary_plot(shap_values,
-                                    self.x_train.columns,
-                                    show=True))
-
-        # show_plot(shap.force_plot(explainer.expected_value[0],
-        #                           shap_values[0][0, :],
-        #                           self.x_test.iloc[0, :],
-        #                           link="logit",
-        #                           show=True))
+        elif self.model_name == 'Random Forest':
+            if self.only_test:
+                explainer_rf_test = shap.TreeExplainer(self.model)
+                shap_values_rf_test = explainer_rf_test.shap_values(self.x_test_scaled)
+                shap.summary_plot(shap_values_rf_test,
+                                  self.x_test_scaled,
+                                  feature_names=self.x_test.columns, show=False)
+                st.pyplot(bbox_inches='tight')
+                plt.clf()

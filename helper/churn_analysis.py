@@ -353,7 +353,7 @@ class ChurnAnalysis:
         param_grid = {}
         n_components = [5, 10, 30]  # for PCA
         max_depth = [20, 50, 100]  # for RandomForest
-        C = np.logspace(-4, 4, 3)  # For LR
+        C = [1e-4, 1e-3, 1e-2, 1e-1, 1e1, 1e2, 1e3, 1e4]  # For LR
 
         steps = [('scaler', StandardScaler())]
 

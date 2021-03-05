@@ -74,9 +74,9 @@ elif option == 'Churn Analysis':
 
         if st.button("Train"):
             reports = churnAnalysis.run(model_name=model_options,
-                                        apply_reduction=True)
+                                        apply_reduction=False)
             train_report = reports['train_report']
-            test_report = reports['train_report']
+            test_report = reports['test_report']
             st.text(str(train_report))  # Todo: Change this to a table view
             st.text(str(test_report))  # Todo: Change this to a table view
         else:
@@ -97,9 +97,11 @@ elif option == 'Churn Analysis':
             explain = Explain(model_name=model_options,
                               model_path='./data/model',
                               data_path='./data/output',
-                              only_test=False)
+                              only_test=True)
 
             explain.run()
+            # st.pyplot(fig, bbox_inches='tight')
+            # st.pyplot(fig)
 
 elif option == 'Topic Modeling':
     st.write("PLACEHOLDER")
