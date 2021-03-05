@@ -28,14 +28,15 @@ markup_text = {
                 
                 Topic Modeling module further provides options as follows:
                 <ul>
-                <li> PLACEHOLDER
-                <li> PLACEHOLDER
+                <li> <b>Classify</b> <br>
+                Identify the latent (or underlying) topic of the document
+                <li> <b>Explain</b> <br>
+                Explain why a particular topic was picked up.
                 </ul>
                 
                 Inference module further provides options as follows:
                 <ul>
-                <li> PLACEHOLDER
-                <li> PLACEHOLDER
+                <li> A clean way to visualize results from Churn Analysis and Topic modules
                 </ul>
                 <hr>
                 Note: Further instructions are also available in modules/sub-modules.
