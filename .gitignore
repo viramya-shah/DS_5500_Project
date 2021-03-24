@@ -1,4 +1,5 @@
 .csv
-/data/raw_data/dbpedia
+/data/model
+/data/output
 /.idea
 /Notebooks

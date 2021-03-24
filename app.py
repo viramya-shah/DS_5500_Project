@@ -4,10 +4,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
 
-from helper.churn_analysis import ChurnAnalysis
-from helper.explain import Explain
-from helper.extra_utils import ASSETS, markup_text
-from helper.streamlit_shap_plot_utils import set_block_container_style
+from churn_helper.churn_analysis import ChurnAnalysis
+from churn_helper.explain import Explain
+from churn_helper.extra_utils import ASSETS, markup_text
+from churn_helper.streamlit_shap_plot_utils import set_block_container_style
+
+from complaint_helper.sentiment_classifier import SentimentClassifier
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 set_block_container_style()
@@ -155,6 +157,9 @@ elif option == 'Churn Analysis':
             explain.run()
 
 elif option == 'Topic Modeling':
+    sentimentClassifier = SentimentClassifier(data_path="./data/raw_data/", file_name="sentiment_complaints.csv")
+    sentimentClassifier.run()
+    st.write(sentimentClassifier.data)
     st.write("PLACEHOLDER")
 
 elif option == 'Inference':
