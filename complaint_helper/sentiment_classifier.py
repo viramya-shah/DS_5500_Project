@@ -152,7 +152,6 @@ class SentimentClassifier:
                       patience=patience,
                       max_epochs=max_epochs,
                       )
-
     def predict(self,
                 x: str = 'test string'):
         """
