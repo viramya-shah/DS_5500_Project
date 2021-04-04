@@ -112,9 +112,11 @@ class TopicModeling:
             path = os.path.join(self.model_output_path, 'nmf.pkl')
             pickle.dump(nmf, open(path, 'wb'))
 
-        return tfidf_feature_names =  tfidf_vectorizer.get_feature_names()
+        return tfidf_vectorizer.get_feature_names()
+
         print(f"NMF Trained Successfully ({int(time.time() - start_time) % 60}s)")
         print("*" * 89)
 
-    def lda_model(self):
-        pass
+    def lda_model_run(self):
+        self.tf_vectorizer()
+        self._lda_model()
