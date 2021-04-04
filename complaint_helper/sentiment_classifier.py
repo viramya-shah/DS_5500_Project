@@ -1,7 +1,10 @@
 import os
 import time
 
+import plotly
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 from flair.data import Sentence
 from flair.datasets import ClassificationCorpus
 from flair.embeddings import WordEmbeddings, DocumentPoolEmbeddings
@@ -165,10 +168,38 @@ class SentimentClassifier:
 
     def eda(self):
         """
-        Juhi -> Add the EDA plots in here
-        :return:
+        Plotting the ratings for respective states from 2000 to 2016
+        :return: Plot
         """
-        pass
+        data_slider = []
+        # color scale
+        scl = [[0.0, '#4d0000'], [0.2, '#ff9999'], [0.4, '#ff4d4d'],
+               [0.6, '#ff1a1a'], [0.8, '#cc0000'], [1.0, '#ffffff']]
+        for years in data.year.unique():
+            #create the dictionary with the data for the current year
+            mask = data['year'] == years
+            data_one_year = dict(
+                type='choropleth',
+                locations=data.State[mask],
+                z=data.rating[mask].astype(int),
+                locationmode='USA-states',
+                colorscale=scl,
+            )
+            data_slider.append(data_one_year)
+        steps = []
+        for i in range(len(data_slider)):
+            step = dict(method='restyle',
+                        args=['visible', [False] * len(data_slider)],
+                        label='Year {}'.format(2016 - i))  # label to be displayed for each step (year)
+            step['args'][1][i] = True
+            steps.append(step)
+        sliders = [dict(active=0, pad={"t": 1}, steps=steps)]
+        layout = dict(geo=dict(scope='usa',
+                               projection={'type': 'albers usa'}),
+                      sliders=sliders)
+
+        fig = dict(data=data_slider, layout=layout)
+        return fig
 
     def run(self):
         """
