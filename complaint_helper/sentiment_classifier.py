@@ -1,10 +1,7 @@
 import os
 import time
 
-import plotly
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 from flair.data import Sentence
 from flair.datasets import ClassificationCorpus
 from flair.embeddings import WordEmbeddings, DocumentPoolEmbeddings
@@ -155,6 +152,7 @@ class SentimentClassifier:
                       patience=patience,
                       max_epochs=max_epochs,
                       )
+
     def predict(self,
                 x: str = 'test string'):
         """
@@ -175,13 +173,13 @@ class SentimentClassifier:
         # color scale
         scl = [[0.0, '#4d0000'], [0.2, '#ff9999'], [0.4, '#ff4d4d'],
                [0.6, '#ff1a1a'], [0.8, '#cc0000'], [1.0, '#ffffff']]
-        for years in data.year.unique():
-            #create the dictionary with the data for the current year
-            mask = data['year'] == years
+        for years in self.data.year.unique():
+            # create the dictionary with the data for the current year
+            mask = self.data['year'] == years
             data_one_year = dict(
                 type='choropleth',
-                locations=data.State[mask],
-                z=data.rating[mask].astype(int),
+                locations=self.data.State[mask],
+                z=self.data.rating[mask].astype(int),
                 locationmode='USA-states',
                 colorscale=scl,
             )

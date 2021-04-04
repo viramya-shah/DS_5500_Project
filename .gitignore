@@ -3,3 +3,5 @@
 /data/output
 /.idea
 /Notebooks
+./.ipynb_checkpoints
+/helper
