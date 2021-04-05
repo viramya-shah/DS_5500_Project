@@ -6,6 +6,8 @@ import time
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation
 
+global tfidf_vectorizer
+
 
 class TopicModeling:
     def __init__(self,
@@ -34,8 +36,6 @@ class TopicModeling:
         if not os.path.exists(self.model_output_path):
             os.makedirs(self.model_output_path)
 
-        self.tfidf_vectorizer = None
-
         print(f"Success ({int(time.time() - start_time) % 60}s)")
         print("*" * 89)
 
@@ -46,12 +46,12 @@ class TopicModeling:
         """
         return self.data[self.topic_extract_col]
 
-    def tfidf_vectorizer(self,
-                         save: bool = True):
+    def _tfidf_vectorizer(self,
+                          save: bool = True):
         """
 
         :param save:
-        :return:
+        :return: TFIDF score and labels
         """
         start_time = time.time()
         text_data = self._get_topic_extractor_data()
@@ -67,14 +67,14 @@ class TopicModeling:
 
         print(f"TFIDF Success ({int(time.time() - start_time) % 60})s")
         print("*" * 89)
-        return tfidf
+        return tfidf, tfidf_vectorizer.get_feature_names()
 
-    def tf_vectorizer(self,
-                      save: bool = True):
+    def _tf_vectorizer(self,
+                       save: bool = True):
         """
 
         :param save:
-        :return:
+        :return: TF score and labels
         """
         start_time = time.time()
         text_data = self._get_topic_extractor_data()
@@ -91,7 +91,7 @@ class TopicModeling:
 
         print(f"TF Success ({int(time.time() - start_time) % 60})s")
         print("*" * 89)
-        return tf
+        return tf, tf_vectorizer.get_feature_names()
 
     def nmf_model(self,
                   save: bool = True):
@@ -102,7 +102,7 @@ class TopicModeling:
         """
         start_time = time.time()
 
-        tfidf = self.tfidf_vectorizer()
+        tfidf, label = self._tfidf_vectorizer()
         nmf = NMF(n_components=self.n_topics,
                   random_state=1,
                   alpha=.1,
@@ -112,11 +112,32 @@ class TopicModeling:
             path = os.path.join(self.model_output_path, 'nmf.pkl')
             pickle.dump(nmf, open(path, 'wb'))
 
-        return tfidf_vectorizer.get_feature_names()
+        return label
 
         print(f"NMF Trained Successfully ({int(time.time() - start_time) % 60}s)")
         print("*" * 89)
 
-    def lda_model_run(self):
-        self.tf_vectorizer()
-        self._lda_model()
+    def lda_model(self,
+                  save: bool = True):
+        """
+
+        :param save:
+        :return:
+        """
+        start_time = time.time()
+
+        tf, label_tf = self._tf_vectorizer()
+        lda = LatentDirichletAllocation(n_components=self.n_topics,
+                                        max_iter=5,
+                                        learning_method='online',
+                                        learning_offset=50.,
+                                        random_state=0).fit(tf)
+
+        if save:
+            path = os.path.join(self.model_output_path, 'lda.pkl')
+            pickle.dump(lda, open(path, 'wb'))
+
+        return label_tf
+
+        print(f"LDA Trained Successfully ({int(time.time() - start_time) % 60}s)")
+        print("*" * 89)
