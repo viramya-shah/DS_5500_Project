@@ -14,7 +14,7 @@ class TopicModeling:
                  topic_extract_col: str = 'Customer Complaint',
                  model_output_path: str = './output/topic_modeling/',
                  n_features: int = 200,
-                 n_topics: int = 10,
+                 n_topics: int = 5,
                  n_top_words: int = 5):
         """
 
@@ -38,7 +38,7 @@ class TopicModeling:
         print(f"Success ({int(time.time() - start_time) % 60}s)")
         print("*" * 89)
 
-    def show_topics(self, vectorizer, lda_model, n_words=20):
+    def show_topics(self, vectorizer, lda_model, n_words=5):
         keywords = np.array(vectorizer.get_feature_names())
         topic_keywords = []
         for topic_weights in lda_model.components_:
@@ -102,10 +102,12 @@ class TopicModeling:
         start_time = time.time()
         text_data = self._get_topic_extractor_data()
 
-        text_data = self._get_topic_extractor_data()
+        stop_words = set(stopwords.words('english'))
+        new_stopwords = ['comcast']
+        new_stopwords_list = stop_words.union(new_stopwords)
         tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2,
                                         max_features=self.n_feature,
-                                        stop_words='english')
+                                        stop_words=new_stopwords_list)
         tf = tf_vectorizer.fit_transform(text_data)
 
         if save:
@@ -136,8 +138,7 @@ class TopicModeling:
         df_topic_keywords = pd.DataFrame(topic_keywords)
         df_topic_keywords.columns = ['Word ' + str(i) for i in range(df_topic_keywords.shape[1])]
         df_topic_keywords.index = ['Topic ' + str(i) for i in range(df_topic_keywords.shape[0])]
-        Topics = ["Service Quality", "TV/Phone Support", "Equipment Failure", "Connection Issue", "Billing Complaint",
-                  "Blocking Other Accounts", "Overcharges", "Bandwidth Issue", "Usage Issue", "Speed Issue"]
+        Topics = ["Speed Issue", "Billing Issue", "Usage Issue", "Service Issue", "Overcharges"]
         df_topic_keywords["Topics"] = Topics
 
         if save:
@@ -172,8 +173,7 @@ class TopicModeling:
         df_topic_keywords = pd.DataFrame(topic_keywords)
         df_topic_keywords.columns = ['Word ' + str(i) for i in range(df_topic_keywords.shape[1])]
         df_topic_keywords.index = ['Topic ' + str(i) for i in range(df_topic_keywords.shape[0])]
-        Topics = ["Service Quality", "TV/Phone Support", "Equipment Failure", "Connection Issue", "Billing Complaint",
-                  "Blocking Other Accounts", "Overcharges", "Bandwidth Issue", "Usage Issue", "Speed Issue"]
+        Topics = ["Service_Issue", "Price_Issue", "Service_Charges_Issue", "Speed_Issue", "Billing_Issue"]
         df_topic_keywords["Topics"] = Topics
 
         if save:
