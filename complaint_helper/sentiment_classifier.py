@@ -3,6 +3,9 @@ import time
 
 import pandas as pd
 from flair.data import Sentence
+import plotly.express as px
+import plotly.offline as offline
+from plotly.offline import init_notebook_mode, iplot
 from flair.datasets import ClassificationCorpus
 from flair.embeddings import WordEmbeddings, DocumentPoolEmbeddings
 from flair.models import TextClassifier
