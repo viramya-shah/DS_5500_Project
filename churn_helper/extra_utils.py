@@ -28,20 +28,28 @@ markup_text = {
                 
                 Topic Modeling module further provides options as follows:
                 <ul>
-                <li> <b>Classify</b> <br>
-                Identify the latent (or underlying) topic of the document
-                <li> <b>Explain</b> <br>
-                Explain why a particular topic was picked up.
+                <li> <b>Topic Extraction</b> <br>
+                Identify the latent (or underlying) topics of the documents or the given text.
+                <li> <b>Severity Classification</b> <br>
+                Explain the severity of the complain. 
                 </ul>
                 
-                Inference module further provides options as follows:
-                <ul>
-                <li> A clean way to visualize results from Churn Analysis and Topic modules
-                </ul>
                 <hr>
                 Note: Further instructions are also available in modules/sub-modules.
-                """
+                """,
+    "sentiments_extraction": """
+                             The highlighted text above shows the severity of the customer complaint. Please follow the 
+                             rules that you were instructed during the training. Please be mindful of the level and 
+                             mitigate the severity to your best possible way.
+                             """,
+    "topic_extraction": """
+                        The customer wants to know about the highlighted issue above. Please address issues related to 
+                        this issue in the most efficient way possible. If the issue escalates, please refer to the 
+                        following:
+                        """
 }
+
+
 
 # churn global variables
 churn_dict = {

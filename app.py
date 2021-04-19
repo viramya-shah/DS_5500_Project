@@ -10,6 +10,7 @@ from churn_helper.extra_utils import ASSETS, markup_text
 from churn_helper.streamlit_shap_plot_utils import set_block_container_style
 
 from complaint_helper.sentiment_classifier import SentimentClassifier
+from complaint_helper.topic_modeling import TopicModeling
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 set_block_container_style()
@@ -27,7 +28,6 @@ option = st.sidebar.radio(
         'Tutorial: How to use it?',
         'Churn Analysis',
         'Topic Modeling',
-        'Inference'
     ],
     index=0
 )
@@ -157,10 +157,60 @@ elif option == 'Churn Analysis':
             explain.run()
 
 elif option == 'Topic Modeling':
-    sentimentClassifier = SentimentClassifier(data_path="./data/raw_data/", file_name="sentiment_complaints.csv")
-    sentimentClassifier.run()
-    st.write(sentimentClassifier.data)
-    st.write("PLACEHOLDER")
+    topic_model_options = st.sidebar.radio(
+        label="What to do?",
+        options=[
+            'Exploratory Data Analysis',
+            'Severity',
+            'Extract Topics',
+        ],
+        index=0
+    )
+    if topic_model_options == 'Exploratory Data Analysis':
+        st.write("PLACEHOLDER")
 
-elif option == 'Inference':
-    st.write("PLACEHOLDER")
+    elif topic_model_options == 'Severity':
+        text = st.text_input("Enter the text", "")
+
+        if st.button("Go"):
+            sentimentClassifier = SentimentClassifier(data_path="./data/raw_data/",
+                                                      file_name="sentiment_complaints.csv")
+            labels, info = sentimentClassifier.predict(text)
+            st.markdown(f"<i><u>Severity</i></u>: <b>{labels}</b>",
+                        unsafe_allow_html=True)
+
+            st.markdown(markup_text.get("sentiments_extraction", "ERROR"))
+            st.markdown(f"<i><u>Escalate here, if needed</u></i>: {info}", unsafe_allow_html=True)
+
+    elif topic_model_options == 'Extract Topics':
+        topicModeling = TopicModeling()
+        text = st.text_input("Enter the text", "")
+
+        extract_options = st.sidebar.radio(
+            label="What to do?",
+            options=[
+                'Latent Dirichlet Allocation',  # Todo: change to full names
+                'Non-Matrix Factorization',
+            ],
+            index=0
+        )
+        if extract_options == 'Latent Dirichlet Allocation':
+            vectorizer = pickle.load(open("output/topic_modeling/tf_vectorizer.pkl", 'rb'))
+            model = pickle.load(open("output/topic_modeling/lda.pkl", 'rb'))
+        elif extract_options == 'Non-Matrix Factorization':
+            vectorizer = pickle.load(open("output/topic_modeling/tfidf_vectorizer.pkl", 'rb'))
+            model = pickle.load(open("output/topic_modeling/nmf.pkl", 'rb'))
+        else:
+            vectorizer = None
+            model = None
+
+        if st.button("Go"):
+            topic, info = topicModeling.apply_predict_topic(text=text,
+                                                            vectorizer=vectorizer,
+                                                            lda_model=model)
+
+            st.markdown(f"<i><u>Topic</i></u>: <b>{topic}</b>",
+                        unsafe_allow_html=True)
+
+            st.markdown(markup_text.get("topic_extraction", "ERROR"))
+            st.markdown(f"<i><u>Escalate here, if needed</u></i>: {info}", unsafe_allow_html=True)

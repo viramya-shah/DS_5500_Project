@@ -1,15 +1,9 @@
-import pandas as pd
-import numpy as np
-import os
-import plotly
 from plotly.graph_objs import Pie, Layout,Figure
 import plotly.express as px
-import plotly.graph_objs as go
-import plotly.figure_factory as ff
 from plotly.offline import init_notebook_mode
+
 init_notebook_mode(connected=True)
-from plotly.offline import plot, iplot
-from data_util import DataUtil
+
 
 class EDAUtil:
     def __init__(self, data):

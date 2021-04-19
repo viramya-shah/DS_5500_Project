@@ -156,6 +156,14 @@ class SentimentClassifier:
                       max_epochs=max_epochs,
                       )
 
+    def _get_contact_info(self, topic):
+        if topic == 'Very Severe':
+            return "<b>John from AssistMe @ (XXX)-XXX-XXXX</b>"
+        if topic == 'Severe':
+            return "<b>Krystin from AssistMe @ (XXX)-XXX-XXXX</b>"
+        if topic == "Can Improve":
+            return "<b>Matt from AssistMe @ (XXX)-XXX-XXXX</b>"
+
     def predict(self,
                 x: str = 'test string'):
         """
@@ -165,7 +173,8 @@ class SentimentClassifier:
         """
         sentence = Sentence(x)
         self.sentiment_model.predict(sentence)
-        print(sentence.labels)
+        level = self.complaint_severity[int(sentence.get_label_names()[0])]
+        return level, self._get_contact_info(level)
 
     def eda(self):
         """
