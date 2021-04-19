@@ -160,7 +160,7 @@ elif option == 'Topic Modeling':
     topic_model_options = st.sidebar.radio(
         label="What to do?",
         options=[
-            # 'Exploratory Data Analysis',
+            'Exploratory Data Analysis',
             'Severity',
             'Extract Topics',
         ],

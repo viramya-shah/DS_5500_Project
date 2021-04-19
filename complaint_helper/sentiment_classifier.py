@@ -1,6 +1,6 @@
 import os
 import time
-
+import streamlit as st
 import pandas as pd
 from flair.data import Sentence
 from flair.datasets import ClassificationCorpus
@@ -74,7 +74,8 @@ class SentimentClassifier:
         self.data[['Author', 'Location']] = self.data.author.apply(lambda x: pd.Series(str(x).split(" of ")))
         self.data['State'] = self.data['Location'].apply(self._clean_location)
 
-        self.data = self.data.drop(['author', 'Location', 'posted_on'], axis=1)
+        # self.data = self.data.drop(['author', 'Location', 'posted_on'], axis=1)
+        self.data['rating_internal'] = self.data['rating']
         self.data['rating'] = self.data['rating'].map(self.complaint_severity)
 
     def _clean_text(self, x):
@@ -173,34 +174,39 @@ class SentimentClassifier:
         level = self.complaint_severity[int(sentence.get_label_names()[0])]
         return level, self._get_contact_info(level)
 
-    def _year(self, x):
-        try:
-            return int(str(x)[:-4])
-        except Exception as e:
-            return 2015
-
-    def _state(self, x):
-        return x[:-2]
+    # def _year(self, x):
+    #     try:
+    #         return int(str(x)[:-4])
+    #     except Exception as e:
+    #         return 2015
+    #
+    # def _state(self, x):
+    #     return x[:-2]
 
     def eda(self):
         """
         Plotting the ratings for respective states from 2000 to 2016
         :return: Plot
         """
+
+        self.restructure_data()
+        print(self.data[self.data.rating_internal.isna()])
+
         data_slider = []
-        self.data['year'] = self.data['posted_on'].apply(self._year)
-        self.data['State'] = self.data['author'].apply(self._state)
+        # self.data['year'] = self.data['posted_on'].apply(self._year)
+        # self.data['State'] = self.data['author'].apply(self._state)
 
         # color scale
         scl = [[0.0, '#4d0000'], [0.2, '#ff9999'], [0.4, '#ff4d4d'],
                [0.6, '#ff1a1a'], [0.8, '#cc0000'], [1.0, '#ffffff']]
+        print(self.data.columns)
         for years in self.data.year.unique():
             # create the dictionary with the data for the current year
             mask = self.data['year'] == years
             data_one_year = dict(
                 type='choropleth',
                 locations=self.data.State[mask],
-                z=self.data.rating[mask].astype(int),
+                z=self.data.rating_internal[mask].astype(int),
                 locationmode='USA-states',
                 colorscale=scl,
             )
@@ -215,9 +221,22 @@ class SentimentClassifier:
         sliders = [dict(active=0, pad={"t": 1}, steps=steps)]
         layout = dict(geo=dict(scope='usa',
                                projection={'type': 'albers usa'}),
-                      sliders=sliders)
+                      sliders=sliders,
+                      autosize=False,
+                      width=1000,
+                      height=1000,
+                      margin=dict(
+                          l=50,
+                          r=50,
+                          b=100,
+                          t=100,
+                          pad=4
+                      ),
+                      paper_bgcolor="white",
+                      title_text="Rating over the years (2001-2016)")
 
         fig = dict(data=data_slider, layout=layout)
+
         return fig
 
     def run(self):
