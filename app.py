@@ -160,14 +160,16 @@ elif option == 'Topic Modeling':
     topic_model_options = st.sidebar.radio(
         label="What to do?",
         options=[
-            'Exploratory Data Analysis',
+            # 'Exploratory Data Analysis',
             'Severity',
             'Extract Topics',
         ],
         index=0
     )
     if topic_model_options == 'Exploratory Data Analysis':
-        st.write("PLACEHOLDER")
+        sentimentClassifier = SentimentClassifier(data_path="./data/raw_data/",
+                                                  file_name="sentiment_complaints.csv")
+        st.plotly_chart(sentimentClassifier.eda())
 
     elif topic_model_options == 'Severity':
         text = st.text_input("Enter the text", "")

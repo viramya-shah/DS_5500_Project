@@ -1,8 +1,6 @@
-
+import os
 
 import pandas as pd
-import numpy as np
-import os
 
 
 class DataUtil:
@@ -17,4 +15,3 @@ class DataUtil:
         :returns: Pandas' dataframe
         """
         return pd.read_csv(os.path.join(self.data_folder, file_name), low_memory=low_memory)
-

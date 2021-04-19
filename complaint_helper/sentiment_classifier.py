@@ -3,9 +3,6 @@ import time
 
 import pandas as pd
 from flair.data import Sentence
-import plotly.express as px
-import plotly.offline as offline
-from plotly.offline import init_notebook_mode, iplot
 from flair.datasets import ClassificationCorpus
 from flair.embeddings import WordEmbeddings, DocumentPoolEmbeddings
 from flair.models import TextClassifier
@@ -176,12 +173,24 @@ class SentimentClassifier:
         level = self.complaint_severity[int(sentence.get_label_names()[0])]
         return level, self._get_contact_info(level)
 
+    def _year(self, x):
+        try:
+            return int(str(x)[:-4])
+        except Exception as e:
+            return 2015
+
+    def _state(self, x):
+        return x[:-2]
+
     def eda(self):
         """
         Plotting the ratings for respective states from 2000 to 2016
         :return: Plot
         """
         data_slider = []
+        self.data['year'] = self.data['posted_on'].apply(self._year)
+        self.data['State'] = self.data['author'].apply(self._state)
+
         # color scale
         scl = [[0.0, '#4d0000'], [0.2, '#ff9999'], [0.4, '#ff4d4d'],
                [0.6, '#ff1a1a'], [0.8, '#cc0000'], [1.0, '#ffffff']]
