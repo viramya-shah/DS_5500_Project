@@ -434,8 +434,6 @@ class ChurnAnalysis:
         train_report = self._model(split_dict['X_train'], split_dict['y_train'], model_name, apply_reduction)
         test_report = self.predict(model_name, split_dict['X_test'], split_dict['y_test'])
 
-
-
         return {
             'train_report': train_report,
             'test_report': test_report

@@ -1,0 +1,13 @@
+shap~=0.39.0
+streamlit~=0.79.0
+matplotlib~=3.3.4
+plotly~=4.14.3
+pandas~=1.1.5
+imblearn~=0.0
+pactools~=0.3.1
+sklearn~=0.0
+scikit-learn~=0.24.1
+nltk~=3.6.1
+numpy~=1.19.5
+flair~=0.8.0.post1
+setuptools~=52.0.0
